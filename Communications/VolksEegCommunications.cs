@@ -4,57 +4,45 @@ using System.Threading.Tasks;
 
 namespace VolksEEG.Communications
 {
-    public class VolksEegCommunications
+    public class VolksEegCommunications : IResponseParser
     {
-        public delegate void CommunicationsLostEventHandler();
-        public event CommunicationsLostEventHandler CommunicationsLost;
+        private LowLevelCommunications _Coms;
 
-        private ICommunicationsLink _ComsLink;
-        private IResponseParser _ResponseParser;
-
-        private IRxState _CurrentRxState;
-
-        private CancellationTokenSource _CancellationTokenSource;
-
-        public VolksEegCommunications(ICommunicationsLink comsLink, IResponseParser responseParser)
+        public VolksEegCommunications(ICommunicationsLink comsLink)
         {
-            _ComsLink = comsLink;
-            _ResponseParser = responseParser;
+            _Coms = new LowLevelCommunications(comsLink, this);
         }
 
-        public void StartCommunicationsAsync()
+        public void StartCommunications()
         {
-            ResetCommunications();
-
-            _CancellationTokenSource = new CancellationTokenSource();
-
-            Task.Factory.StartNew(ReceiveTask, _CancellationTokenSource.Token);
-        }
-
-        private void ReceiveTask()
-        {
-            while(_CancellationTokenSource.IsCancellationRequested)
+            if (_Coms == null)
             {
-                _CurrentRxState.ProcessState();
+                //! \todo throw an exception
+                return;
             }
 
-            // Communications has been cancelled so raise the coms lost event
-            CommunicationsLost?.Invoke();
+            if (_Coms.CommunicationsIsActive)
+            {
+                // communications is already active 
+                return;
+            }
+
+            _Coms.StartCommunications();
         }
 
-        public void StopCommunications()
+        public void StartDataCapture()
         {
-            _CancellationTokenSource.Cancel();
+            _Coms.SendPayload();
         }
 
-        public void SendPayload()
+        public void StopDataCapture()
         {
-
+            _Coms.SendPayload();
         }
 
-        private void ResetCommunications()
+        public void ParseResponse(byte[] response)
         {
-            _CurrentRxState = new RxStates.GetSynchronisationWord(_ComsLink, _ResponseParser);
+            
         }
     }
 }
