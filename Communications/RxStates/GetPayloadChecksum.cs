@@ -4,11 +4,11 @@ using System.Text;
 
 namespace VolksEEG.Communications.RxStates
 {
-    internal class GetId : IRxState
+    internal class GetPayloadChecksum : IRxState
     {
         private LowLevelCommunicationsData _StateData;
 
-        public GetId(LowLevelCommunicationsData stateData) 
+        public GetPayloadChecksum(LowLevelCommunicationsData stateData) 
         {
             _StateData = stateData;
         }
@@ -17,15 +17,10 @@ namespace VolksEEG.Communications.RxStates
         {
             if (_StateData.ComsLink.GetReceivedData(1, out int readCount, out byte[] data))
             {
-                // check the ID
-                if (_StateData.ExpectedID != data[0])
-                {
-                    // ID is not as expected, so look for the next sync word
-                    return new GetSynchronisationWord(_StateData);
-                }
+                _StateData.PayloadChecksum = data[0];
 
                 // ID is ok so carry on receiving the message
-                return new GetIdAcknowledge(_StateData);
+                return new GetPayloadLength(_StateData);
             }
 
             return this;

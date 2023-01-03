@@ -4,28 +4,30 @@ using System.Text;
 
 namespace VolksEEG.Communications.RxStates
 {
-    internal class GetId : IRxState
+    internal class GetPayloadData : IRxState
     {
         private LowLevelCommunicationsData _StateData;
 
-        public GetId(LowLevelCommunicationsData stateData) 
+        private byte _BytesReceived;
+
+        public GetPayloadData(LowLevelCommunicationsData stateData) 
         {
             _StateData = stateData;
+
+            _BytesReceived = 0;
         }
 
         public IRxState ProcessState()
         {
             if (_StateData.ComsLink.GetReceivedData(1, out int readCount, out byte[] data))
             {
-                // check the ID
-                if (_StateData.ExpectedID != data[0])
-                {
-                    // ID is not as expected, so look for the next sync word
-                    return new GetSynchronisationWord(_StateData);
-                }
+                _StateData.Data[_BytesReceived++] = data[0];
 
-                // ID is ok so carry on receiving the message
-                return new GetIdAcknowledge(_StateData);
+                if (_BytesReceived == _StateData.PayloadLength)
+                {
+                    // Payload has been received so process the message
+                    return new ProcessMessage(_StateData);
+                }
             }
 
             return this;
