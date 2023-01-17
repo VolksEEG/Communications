@@ -8,7 +8,6 @@ namespace VolksEEG.Communications.RxStates
     {
         private LowLevelCommunicationsData _StateData;
 
-        private static readonly byte[] _SYNCHRONISATION_WORD = { 0xAA, 0x55 };
         private int _CheckIndex;
 
         public GetSynchronisationWord(LowLevelCommunicationsData stateData)
@@ -20,11 +19,11 @@ namespace VolksEEG.Communications.RxStates
 
         public IRxState ProcessState()
         {
-            if (_StateData.ComsLink.GetReceivedData(1, out int readCount, out byte[] data))
+            if (_StateData.ComsLink.Read(1, out int readCount, out byte[] data))
             {
                 // we have a byte, so  check it
                 // at this point we should have a byte but it may be worth checking
-                if (_SYNCHRONISATION_WORD[_CheckIndex] == data[0])
+                if (_StateData._SYNCHRONISATION_WORD[_CheckIndex] == data[0])
                 {
                     _CheckIndex++;
                 }

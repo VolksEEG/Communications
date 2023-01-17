@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NullFX.CRC;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -7,6 +8,25 @@ namespace VolksEEG.Communications
 {
     internal class LowLevelCommunicationsData
     {
+        public delegate void NewIDToAcknowledgeEventHandler(byte id);
+        public event NewIDToAcknowledgeEventHandler NewIdToAcknowledge;
+
+        public readonly byte _HEADER_LENGTH = 8;
+        public readonly byte[] _SYNCHRONISATION_WORD = { 0xAA, 0x55 };
+        public readonly byte _SYNC_WORD_LSB_INDEX = 0;
+        public readonly byte _SYNC_WORD_MSB_INDEX = 1;
+
+        public readonly byte _PROTOCOL_VERSION = 0x01;
+        public readonly byte _PROTOCOL_VERSION_INDEX = 2;
+
+        public readonly byte _PAYLOAD_LENGTH_INDEX = 3;
+
+        public readonly byte _ID_NUMBER_INDEX = 4;
+        public readonly byte _ID_ACKNOWLEDGE_INDEX = 5;
+        public readonly byte _PAYLOAD_CHECKSUM_INDEX = 6;
+        public readonly byte _HEADER_CHECKSUM_INDEX = 7;
+        public readonly byte _PAYLOAD_START_INDEX = 8;
+
         public ICommunicationsLink ComsLink { get; }
         public IResponseParser ResponseParser { get; }
 
@@ -14,6 +34,12 @@ namespace VolksEEG.Communications
         public byte ExpectedID
         {
             get { return _ExpectedID; }
+        }
+
+        private byte _LastReceivedId;
+        public byte LastReceivedID
+        {
+            get { return _LastReceivedId; }
         }
 
         private byte _IdToAcknowledge;
@@ -45,16 +71,20 @@ namespace VolksEEG.Communications
             ComsLink = comsLink;
             ResponseParser = responseParser;
             PayloadLength = 0;
+
+            _ExpectedID = 0;
+            _LastReceivedId = 0xFF;
         }
 
         public void SetNextExpectedID()
         {
+            _LastReceivedId = _ExpectedID;
             _ExpectedID++;
         }
 
         public void AcknowledgeReceivedID()
         {
-            //! \todo Add event to process the received ID.
+            NewIdToAcknowledge?.Invoke(_IdToAcknowledge);
         }
 
         public bool MessageHeaderIsValid(byte rxChecksum)
@@ -64,7 +94,17 @@ namespace VolksEEG.Communications
 
         public bool MessagePayloadIsValid()
         {
-            return true;
+            return _PayloadChecksum == GetPayloadChecksum(_Data);
+        }
+
+        public byte GetPayloadChecksum(byte[] payload)
+        {
+            return Crc8.ComputeChecksum(payload);
+        }
+
+        public byte GetHeaderChecksum(byte[] header)
+        {
+            return 0x01;
         }
     }
 }

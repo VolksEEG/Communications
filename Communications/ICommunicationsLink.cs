@@ -6,8 +6,12 @@ namespace VolksEEG.Communications
 {
     public interface ICommunicationsLink
     {
-        public bool GetReceivedData(int maxCount, out int readCount, out byte[] data);
+        public void Open();
 
-        public bool TransmitData(int count, byte[] data);
+        public void Close();
+
+        public bool Read(int maxCount, out int readCount, out byte[] data);
+
+        public void Write(int count, byte[] data);
     }
 }

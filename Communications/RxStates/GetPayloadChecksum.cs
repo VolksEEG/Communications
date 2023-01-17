@@ -15,7 +15,7 @@ namespace VolksEEG.Communications.RxStates
 
         public IRxState ProcessState()
         {
-            if (_StateData.ComsLink.GetReceivedData(1, out int readCount, out byte[] data))
+            if (_StateData.ComsLink.Read(1, out int readCount, out byte[] data))
             {
                 _StateData.PayloadChecksum = data[0];
 

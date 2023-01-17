@@ -8,8 +8,6 @@ namespace VolksEEG.Communications.RxStates
     {
         private LowLevelCommunicationsData _StateData;
 
-        private static readonly byte _EXPECTED_VERSION = 0x01;
-
         public GetProtocolVersion(LowLevelCommunicationsData stateData) 
         {
             _StateData = stateData;
@@ -17,9 +15,9 @@ namespace VolksEEG.Communications.RxStates
 
         public IRxState ProcessState()
         {
-            if (_StateData.ComsLink.GetReceivedData(1, out int readCount, out byte[] data))
+            if (_StateData.ComsLink.Read(1, out int readCount, out byte[] data))
             {
-                if (_EXPECTED_VERSION != data[0])
+                if (_StateData._PROTOCOL_VERSION != data[0])
                 {
                     // version is not as expected, so look for the next sync word
                     return new GetSynchronisationWord(_StateData);

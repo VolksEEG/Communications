@@ -8,8 +8,6 @@ namespace VolksEEG.Communications.RxStates
     {
         private LowLevelCommunicationsData _StateData;
 
-        private static readonly byte _EXPECTED_VERSION = 0x01;
-
         public GetPayloadLength(LowLevelCommunicationsData stateData) 
         {
             _StateData = stateData;
@@ -17,7 +15,7 @@ namespace VolksEEG.Communications.RxStates
 
         public IRxState ProcessState()
         {
-            if (_StateData.ComsLink.GetReceivedData(1, out int readCount, out byte[] data))
+            if (_StateData.ComsLink.Read(1, out int readCount, out byte[] data))
             {
                 // set the received
                 _StateData.PayloadLength = (int)data[0];

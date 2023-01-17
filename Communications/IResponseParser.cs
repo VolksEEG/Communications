@@ -4,7 +4,7 @@ using System.Text;
 
 namespace VolksEEG.Communications
 {
-    public interface IResponseParser
+    internal interface IResponseParser
     {
         public void ParseResponse(byte[] response);
     }
