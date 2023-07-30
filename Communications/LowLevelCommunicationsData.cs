@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+[assembly: InternalsVisibleTo("UnitTests")]
 namespace VolksEEG.Communications
 {
     internal class LowLevelCommunicationsData
@@ -89,7 +90,18 @@ namespace VolksEEG.Communications
 
         public bool MessageHeaderIsValid(byte rxChecksum)
         {
-            return true;
+            byte[] header = new byte[7];
+
+            // TODO - This is where I am, need to confirm these values.
+            header[_SYNC_WORD_MSB_INDEX] = _SYNCHRONISATION_WORD[0];
+            header[_SYNC_WORD_LSB_INDEX] = _SYNCHRONISATION_WORD[1];
+            header[_PROTOCOL_VERSION_INDEX] = _PROTOCOL_VERSION;
+            header[_PAYLOAD_LENGTH_INDEX] = (byte)PayloadLength;
+            header[_ID_NUMBER_INDEX] = 0;
+            header[_ID_ACKNOWLEDGE_INDEX] = 0;
+            header[_PAYLOAD_CHECKSUM_INDEX] = _PayloadChecksum;
+
+            return rxChecksum == GetHeaderChecksum(header);
         }
 
         public bool MessagePayloadIsValid()
@@ -104,7 +116,7 @@ namespace VolksEEG.Communications
 
         public byte GetHeaderChecksum(byte[] header)
         {
-            return 0x01;
+            return Crc8.ComputeChecksum(header);
         }
     }
 }
