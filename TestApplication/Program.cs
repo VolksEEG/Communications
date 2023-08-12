@@ -54,6 +54,11 @@ namespace TestApplication
             volksEegCommunications.StartCommunications();
 
             volksEegCommunications.StartDataCapture();
+
+            while(0 == Console.Read())
+            {
+
+            }
         }
     }
 }

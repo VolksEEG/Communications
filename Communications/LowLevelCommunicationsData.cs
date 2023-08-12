@@ -116,7 +116,7 @@ namespace VolksEEG.Communications
 
         public byte GetHeaderChecksum(byte[] header)
         {
-            return Crc8.ComputeChecksum(header);
+            return Crc8.ComputeChecksum(header, 2, 5);
         }
     }
 }

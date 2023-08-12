@@ -27,7 +27,15 @@ namespace TestApplication
         {
             data = new byte[maxCount];
 
-            readCount = _Serial.Read(data, 0, maxCount);
+            try
+            {
+                readCount = _Serial.Read(data, 0, maxCount);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                readCount = 0;
+            }
 
             return (0 != readCount);
         }
